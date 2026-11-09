@@ -2,137 +2,168 @@
 
 # 🎬 Marquee
 
-### A full-stack movie ticket booking platform
+**Movie Ticket Booking Platform**
 
-Real-time seat selection · Secure Razorpay payments · AI assistant · Automated CI/CD on AWS EC2
+Pick your seats. Pay securely. Get your tickets.<br>
+A full-stack booking platform with seat locking, Razorpay payments, an AI assistant, and automated CI/CD to AWS EC2.
 
 <br>
 
+![CI/CD](https://img.shields.io/github/actions/workflow/status/GitadarshSingh/marquee-movie-booking/deploy.yml?branch=main&label=CI%2FCD&logo=githubactions&logoColor=white&style=for-the-badge)
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.6-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
-![React](https://img.shields.io/badge/React-Vite-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-
-![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
-![AWS](https://img.shields.io/badge/AWS-EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white)
-![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-009639?style=for-the-badge&logo=nginx&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
 <br>
 
-[Features](#-features) ·
-[Architecture](#-architecture) ·
-[Quick Start](#-quick-start) ·
-[CI/CD](#-cicd-pipeline-github-actions--aws-ec2) ·
-[API](#-api-reference) ·
-[Author](#-author)
+<img src="https://skillicons.dev/icons?i=java,spring,react,vite,mysql,docker,nginx,githubactions,aws&perline=9" alt="Tech stack" />
+
+<br><br>
+
+[Features](#features) · [Screenshots](#screenshots) · [Architecture](#architecture) · [Quick Start](#quick-start) · [CI/CD](#cicd) · [Decisions](#design-decisions) · [Roadmap](#limitations--roadmap)
 
 </div>
 
----
+<br>
 
+<a id="overview"></a>
 ## 📖 Overview
 
-**Marquee** lets users browse movies, pick seats on an interactive seat map, pay online, and receive an email confirmation, all in one flow. The backend is a stateless **Spring Boot** REST API secured with **JWT**; the frontend is a **React + Vite** single-page app served by **Nginx**.
+Marquee lets a user browse movies, choose a show, pick seats on a seat map, pay through Razorpay, and receive a confirmation email. The backend is a stateless Spring Boot REST API secured with JWT; the frontend is a React + Vite app served by Nginx. Everything runs in Docker containers on one AWS EC2 instance with an Elastic IP, and every push to `main` is deployed automatically by GitHub Actions.
 
-The project is fully containerized and ships through an automated **GitHub Actions** pipeline that builds images, publishes them to Docker Hub, and deploys to an **AWS EC2** instance addressed by a static **Elastic IP**.
+<table>
+  <tr>
+    <td align="center"><b>9</b><br><sub>JPA repositories</sub></td>
+    <td align="center"><b>2</b><br><sub>Docker images</sub></td>
+    <td align="center"><b>1</b><br><sub>public port (80)</sub></td>
+    <td align="center"><b>0</b><br><sub>secrets in the repo</sub></td>
+  </tr>
+</table>
 
+<a id="features"></a>
 ## ✨ Features
 
-| | Feature | Description |
-|---|---|---|
-| 🔐 | **Authentication** | Signup and login with JWT and Spring Security |
-| 🎞️ | **Movie discovery** | Browse movies, theaters, screens, and show timings |
-| 💺 | **Smart seat locking** | Seats are locked during checkout and auto-released if payment is abandoned, preventing double booking |
-| 💳 | **Razorpay payments** | Order creation, server-side signature verification, and failure handling that frees seats |
-| 📧 | **Email confirmations** | Booking confirmation sent after successful payment |
-| 🤖 | **AI assistant** | In-app chat widget powered by the Gemini API |
-| ⏱️ | **Auto show generation** | A scheduler keeps upcoming shows populated |
-| 📱 | **Responsive UI** | Works across desktop and mobile |
+|     | Feature | Details |
+|-----|---------|---------|
+| 🔐 | **Authentication** | Signup and login with JWT and a Spring Security filter chain |
+| 🎞️ | **Movie discovery** | Movies, shows per movie, theaters, and screens |
+| 💺 | **Seat locking** | Seats move `AVAILABLE → LOCKED → BOOKED`; locks are released on failure, cancellation, or timeout |
+| 💳 | **Razorpay payments** | Order creation, payment verification, and failure handling |
+| 📧 | **Email confirmation** | Sent after successful payment via Spring Mail |
+| 🤖 | **AI assistant** | Chat widget backed by the Gemini API |
+| ⏱️ | **Show generation** | A scheduled job keeps upcoming shows populated |
 
-## 🧰 Tech Stack
+<a id="screenshots"></a>
+## 📸 Screenshots
 
-| Layer | Technologies |
-|---|---|
-| **Backend** | Java 21, Spring Boot 4.0.6, Spring Security, Spring Data JPA, Hibernate, JWT (jjwt) |
-| **Frontend** | React, Vite, JavaScript, CSS |
-| **Database** | MySQL 8 |
-| **Integrations** | Razorpay, Gmail SMTP, Gemini API |
-| **Infrastructure** | Docker, Docker Compose, Nginx, AWS EC2, Elastic IP |
-| **CI/CD** | GitHub Actions, Docker Hub |
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/home.png" width="320" alt="Home" /><br><sub><b>Home</b></sub></td>
+    <td align="center"><img src="docs/screenshots/seats.png" width="320" alt="Seat selection" /><br><sub><b>Seat selection</b></sub></td>
+    <td align="center"><img src="docs/screenshots/payment.png" width="320" alt="Payment" /><br><sub><b>Payment</b></sub></td>
+  </tr>
+</table>
 
+<a id="architecture"></a>
 ## 🏗️ Architecture
 
 ```mermaid
 flowchart LR
-    U([User Browser]) -->|HTTP :80| N
+    U["🌐 Browser"] -->|"HTTP :80"| N
 
-    subgraph EC2["AWS EC2 · Elastic IP"]
-        direction LR
-        N[Nginx<br/>React build] -->|/api proxy| B[Spring Boot API<br/>:8081]
-        B --> D[(MySQL 8<br/>Docker volume)]
+    subgraph EC2["☁️ AWS EC2 · Elastic IP · Docker Compose"]
+        N["Nginx<br/>React build"] -->|"/api proxy"| B["Spring Boot<br/>:8081"]
+        B --> M[("MySQL 8<br/>named volume")]
     end
 
-    B -.-> R[Razorpay]
-    B -.-> M[Gmail SMTP]
-    B -.-> G[Gemini API]
+    B --> R["Razorpay"]
+    B --> G["Gmail SMTP"]
+    B --> A["Gemini API"]
 ```
 
-- Nginx serves the React build and proxies every `/api` request to the backend over the internal Docker network.
-- The backend and database are **not** exposed publicly. The browser talks to one origin, so there are no CORS headaches.
+> [!TIP]
+> Only port 80 is published. The backend and MySQL are reachable solely on the internal Docker network, and Nginx proxies `/api/*`, so the browser uses a single origin and no production CORS setup is needed.
+
+### 🔁 Booking & Payment Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant F as React App
+    participant S as Spring Boot
+    participant R as Razorpay
+    participant D as MySQL
+
+    F->>S: POST /api/bookings (show, seats)
+    S->>D: Booking = PENDING, seats = LOCKED
+    F->>S: POST /api/payments/create-orders
+    S->>R: Create order
+    R-->>F: Checkout popup
+
+    alt Payment succeeds
+        F->>S: POST /api/payments/update-orders (orderId, paymentId, signature)
+        S->>D: Booking = CONFIRMED, seats = BOOKED
+        S-->>F: Success + confirmation email
+    else Failed or dismissed
+        F->>S: POST /api/payments/payment-failed
+        S->>D: Booking = CANCELLED, seats = AVAILABLE
+    end
+```
 
 ## 📁 Project Structure
 
-```
+```text
 marquee-movie-booking/
-├── backend/                  # Spring Boot REST API
+├── backend/                 Spring Boot API
 │   ├── src/
 │   ├── pom.xml
-│   └── Dockerfile
-├── frontend/                 # React + Vite SPA
+│   └── Dockerfile           Multi-stage: Maven build → JRE runtime
+├── frontend/                React + Vite app
 │   ├── src/
-│   ├── nginx.conf
-│   └── Dockerfile
+│   ├── nginx.conf           Static hosting + /api reverse proxy
+│   └── Dockerfile           Multi-stage: Node build → Nginx
 ├── .github/workflows/
-│   └── deploy.yml            # CI/CD pipeline
-├── docker-compose.yml        # Production stack
-├── .env.example              # Required environment variables
+│   └── deploy.yml           CI/CD pipeline
+├── docs/screenshots/        README images
+├── docker-compose.yml       Production stack
+├── .env.example             Required variables (no real values)
 └── README.md
 ```
 
+<a id="quick-start"></a>
 ## 🚀 Quick Start
 
-**Prerequisites:** Java 21, Maven 3.9+, Node.js 20+, MySQL 8 (or Docker).
+**Prerequisites:** Java 21 · Maven 3.9+ · Node.js 20+ · MySQL 8
 
 ```bash
-# 1. Clone
 git clone https://github.com/GitadarshSingh/marquee-movie-booking.git
 cd marquee-movie-booking
 ```
 
 <details>
-<summary><b>Run the backend</b> (http://localhost:8081)</summary>
+<summary><b>▶ Backend</b> — http://localhost:8081</summary>
 
 <br>
 
-The database defaults to `localhost:3306/bms_db`. Provide the remaining secrets as environment variables:
+The database defaults to `localhost:3306/bms_db` and is created automatically. Provide the other secrets as environment variables:
 
 ```bash
 cd backend
-export RAZORPAY_KEY_ID=your_key_id
-export RAZORPAY_KEY_SECRET=your_key_secret
-export MAIL_USERNAME=your_email
-export MAIL_PASSWORD=your_app_password
-export GEMINI_API_KEY=your_gemini_key
+export RAZORPAY_KEY_ID=...
+export RAZORPAY_KEY_SECRET=...
+export MAIL_USERNAME=...
+export MAIL_PASSWORD=...        # Gmail app password
+export GEMINI_API_KEY=...
 mvn spring-boot:run
 ```
 
-On Windows PowerShell, use `$env:RAZORPAY_KEY_ID="..."` instead of `export`.
+> PowerShell: `$env:RAZORPAY_KEY_ID="..."`
 
 </details>
 
 <details>
-<summary><b>Run the frontend</b> (http://localhost:5173)</summary>
+<summary><b>▶ Frontend</b> — http://localhost:5173</summary>
 
 <br>
 
@@ -146,55 +177,63 @@ npm run dev
 
 ## ⚙️ Configuration
 
-No secrets live in the repository. The backend reads everything from environment variables, with safe defaults for local development.
-
-| Variable | Description |
-|---|---|
-| `DB_URL` | JDBC URL (default: local `bms_db`) |
-| `DB_USERNAME` | Database user (default: `root`) |
-| `DB_PASSWORD` | Database password |
-| `RAZORPAY_KEY_ID` | Razorpay key ID |
-| `RAZORPAY_KEY_SECRET` | Razorpay key secret |
-| `MAIL_USERNAME` | SMTP account |
-| `MAIL_PASSWORD` | SMTP app password |
-| `GEMINI_API_KEY` | Gemini API key |
+| Variable | Purpose |
+|----------|---------|
+| `DB_URL` · `DB_USERNAME` · `DB_PASSWORD` | MySQL connection (local defaults provided) |
+| `RAZORPAY_KEY_ID` · `RAZORPAY_KEY_SECRET` | Razorpay credentials (test mode) |
+| `MAIL_USERNAME` · `MAIL_PASSWORD` | SMTP account and app password |
+| `GEMINI_API_KEY` | Gemini API access |
 
 > [!IMPORTANT]
-> Never commit a real `.env` file. On the server, copy `.env.example` to `.env` and fill in real values.
+> The real `.env` lives only on the server and is never committed. The Razorpay Key ID is a public identifier used by the frontend; the Key Secret stays on the backend.
 
----
+<a id="cicd"></a>
+## 🔄 CI/CD: GitHub Actions → AWS EC2
 
-## 🔄 CI/CD Pipeline: GitHub Actions → AWS EC2
-
-Every push to `main` automatically builds, publishes, and deploys the application.
+Every push to `main` builds both images, publishes them to Docker Hub, and redeploys the EC2 instance.
 
 ```mermaid
 flowchart LR
-    A[git push<br/>main] --> B[GitHub Actions]
-    B --> C[Build backend<br/>and frontend images]
-    C --> D[(Docker Hub)]
-    D --> E[SSH into EC2<br/>via Elastic IP]
-    E --> F[docker compose pull<br/>docker compose up -d]
-    F --> G([Live])
+    A["📝 Push to main"] --> B["🔨 Build<br/>backend + frontend"]
+    B --> C["🐳 Docker Hub"]
+    C --> D["🔑 SSH to EC2<br/>Elastic IP"]
+    D --> E["🚀 compose pull<br/>compose up -d"]
 ```
 
-| Stage | What happens |
-|---|---|
-| **1. Build** | Backend and frontend images are built with Docker Buildx (with layer caching). |
-| **2. Publish** | Images are pushed to Docker Hub as `backend-latest` / `frontend-latest`, plus an immutable `-<git-sha>` tag for rollbacks. |
-| **3. Deploy** | The workflow SSHes into EC2, pulls the new images, and restarts containers. The database volume is untouched. |
-| **4. Cleanup** | Dangling images are pruned to save disk space. |
+| Stage | Action |
+|-------|--------|
+| **Build** | Docker Buildx builds `backend/` and `frontend/` with layer caching |
+| **Publish** | Pushed to Docker Hub as `backend-latest` / `frontend-latest` plus a commit-SHA tag |
+| **Deploy** | SSH into EC2, `docker compose pull`, `docker compose up -d` |
+| **Cleanup** | `docker image prune -f` |
 
-### 📌 Why an Elastic IP?
+> [!NOTE]
+> **Why an Elastic IP?** A regular EC2 public IP changes after a stop/start. An Elastic IP is static, so the pipeline's SSH host never goes stale and a domain can be attached later.
 
-A regular EC2 public IP changes every time the instance is stopped and started. An **Elastic IP** is a static address, so the pipeline's SSH target (`EC2_HOST`) never goes stale, and a domain or HTTPS certificate can be attached later without changes.
+### 🔑 GitHub Secrets
 
-### 🖥️ Server setup (one time)
+| Secret | Value |
+|--------|-------|
+| `DOCKERHUB_USERNAME` | Docker Hub username |
+| `DOCKERHUB_TOKEN` | Docker Hub access token |
+| `EC2_HOST` | Elastic IP |
+| `EC2_USER` | `ec2-user` |
+| `EC2_SSH_KEY` | Private key (`.pem`) contents |
 
-Keep these in `/home/ec2-user` on the instance (Docker and Compose plugin installed, Elastic IP associated):
+### 🖥️ Server prerequisites
+
+Amazon Linux 2023 with Docker and the Compose plugin, the Elastic IP associated, and `docker-compose.yml` plus `.env` in `/home/ec2-user`.
+
+| Port | Source | Purpose |
+|------|--------|---------|
+| 80 | `0.0.0.0/0` | Web traffic |
+| 22 | `0.0.0.0/0` | SSH for the pipeline (key-based only) |
+
+> [!WARNING]
+> GitHub-hosted runners use changing IPs, so SSH cannot be limited to one address. Access relies on the private key. A self-hosted runner or AWS Systems Manager would let you close port 22.
 
 <details>
-<summary><b>docker-compose.yml</b></summary>
+<summary><b>📄 docker-compose.yml (production)</b></summary>
 
 <br>
 
@@ -238,33 +277,8 @@ volumes:
 
 </details>
 
-**Security group (inbound)**
-
-| Port | Source | Purpose |
-|---|---|---|
-| 80 | `0.0.0.0/0` | Web traffic |
-| 443 | `0.0.0.0/0` | HTTPS (once a domain is attached) |
-| 22 | `0.0.0.0/0` | SSH for the pipeline, key-based auth only |
-
-> [!NOTE]
-> GitHub-hosted runners use changing IP ranges, so port 22 can't be pinned to one address. Access is protected by the private key stored in GitHub Secrets. For tighter control, use a self-hosted runner or AWS Systems Manager.
-
-### 🔑 GitHub Secrets
-
-Add under **Settings → Secrets and variables → Actions**:
-
-| Secret | Value |
-|---|---|
-| `DOCKERHUB_USERNAME` | Docker Hub username |
-| `DOCKERHUB_TOKEN` | Docker Hub access token |
-| `EC2_HOST` | Elastic IP of the instance |
-| `EC2_USER` | `ec2-user` |
-| `EC2_SSH_KEY` | Full contents of the `.pem` private key |
-
-### 📜 Workflow
-
 <details>
-<summary><b>.github/workflows/deploy.yml</b></summary>
+<summary><b>📄 .github/workflows/deploy.yml</b></summary>
 
 <br>
 
@@ -276,18 +290,29 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 env:
   IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/marquee
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - uses: docker/login-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -317,6 +342,7 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.2.0
@@ -324,32 +350,51 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
           script: |
+            set -e
             cd /home/ec2-user
             docker compose pull
-            docker compose up -d
+            docker compose up -d --remove-orphans
             docker image prune -f
             docker compose ps
 ```
 
 </details>
 
-### ✅ Verify a deployment
+> ⏪ **Rollback:** every build also carries a commit-SHA tag. Point the compose file at an older SHA and run `docker compose up -d`.
 
-1. **Actions** tab: both jobs should be green.
-2. Open `http://<ELASTIC_IP>`: the app should load.
-3. On the server: `docker compose logs --tail 50 backend` should end with `Started BookmyshowApplication`.
+<a id="design-decisions"></a>
+## 🧠 Design Decisions
 
-### ⏪ Rollback
+| Decision | Why |
+|----------|-----|
+| **Stateless JWT auth** | No server-side session, so the API scales horizontally and the frontend just sends a bearer token |
+| **Seat status + lock timestamp** | Seats become `LOCKED` at booking and `BOOKED` only after payment is verified; a scheduler frees stale locks so abandoned checkouts never block seats |
+| **Booking starts as `PENDING`** | Payment can fail or be dismissed; the booking is confirmed only after verification and cancelled (seats freed) otherwise |
+| **Nginx reverse proxy** | One public port, no backend IP baked into the frontend, no production CORS |
+| **Multi-stage Dockerfiles** | Maven and Node stay out of the final images, keeping them small |
+| **Secrets via environment variables** | Images contain no credentials, so one image runs locally and in production |
+| **Elastic IP** | Stable deployment target for CI/CD and a future domain |
+| **Named volume for MySQL** | Data survives container recreation during redeploys |
 
-Every build is also tagged with its commit SHA. Change the image tags in the server's `docker-compose.yml` to an earlier SHA and run `docker compose up -d`.
+<a id="limitations--roadmap"></a>
+## ⚠️ Limitations & Roadmap
 
----
+Current scope, stated openly:
+
+- [ ] HTTPS with a custom domain (Caddy or Nginx + Let's Encrypt). Currently HTTP only.
+- [ ] Amazon RDS with automated backups instead of a containerized database
+- [ ] Flyway migrations instead of Hibernate `ddl-auto=update`
+- [ ] Automated tests in the pipeline (the Docker build currently uses `-DskipTests`)
+- [ ] Deploy by commit-SHA tag instead of mutable `latest`
+- [ ] Close port 22 using a self-hosted runner or AWS Systems Manager
+- [ ] Monitoring and centralized logging
 
 ## 📡 API Reference
 
-| Area | Method and endpoint |
-|---|---|
+| Area | Endpoints |
+|------|-----------|
 | **Auth** | `POST /api/auth/signup` · `POST /api/auth/login` · `GET /api/auth/check-phone` |
 | **Movies** | `GET /api/movies` |
 | **Shows** | `GET /api/shows/movie/{movieId}` |
@@ -358,39 +403,29 @@ Every build is also tagged with its commit SHA. Change the image tags in the ser
 | **Payments** | `POST /api/payments/create-orders` · `POST /api/payments/update-orders` · `POST /api/payments/payment-failed` |
 | **AI** | `POST /api/ai/chat` |
 
-Protected endpoints expect `Authorization: Bearer <token>`.
-
-## 🔒 Security
-
-- Secrets are injected via environment variables and GitHub Secrets, never committed.
-- Stateless JWT authentication with Spring Security.
-- Razorpay signatures are verified server-side before a booking is confirmed.
-- Database and backend are reachable only inside the Docker network.
-- Deployment uses key-based SSH only.
-
-## 🗺️ Roadmap
-
-- [ ] HTTPS with a custom domain (Caddy or Nginx + Let's Encrypt)
-- [ ] Automated tests in the pipeline before deploy
-- [ ] Managed database (Amazon RDS) with automated backups
-- [ ] Monitoring and centralized logging
+Protected endpoints require `Authorization: Bearer <token>`.
 
 ## 👨‍💻 Author
 
-**Adarsh Singh**
-Final-year Computer Science & Engineering student · Galgotias University
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-adarsh--singh--backend-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/adarsh-singh-backend/)
-[![GitHub](https://img.shields.io/badge/GitHub-GitadarshSingh-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/GitadarshSingh)
+<table>
+  <tr>
+    <td>
+      <b>Adarsh Singh</b><br>
+      Final-year B.Tech CSE · Galgotias University<br>
+      Java · Spring Boot · React · Docker · AWS<br><br>
+      <a href="https://www.linkedin.com/in/adarsh-singh-backend/"><img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+      <a href="https://github.com/GitadarshSingh"><img src="https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" /></a>
+    </td>
+  </tr>
+</table>
 
 ## 📄 License
 
 Distributed under the terms of the [LICENSE](LICENSE) file.
 
 <div align="center">
+  <br>
 
-<br>
-
-⭐ If you found this project useful, consider giving it a star.
+  ⭐ If this project helped you, consider starring the repo.
 
 </div>
