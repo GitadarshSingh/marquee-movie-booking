@@ -65,7 +65,7 @@ Marquee lets a user browse movies, choose a show, pick seats on a seat map, pay 
   <tr>
     <td align="center"><img src="Screenshot 2026-11-09 181801.png" width="320" alt="Home" /><br><sub><b>Home</b></sub></td>
     <td align="center"><img src="Screenshot 2026-11-09 181926.png" width="320" alt="Seat selection" /><br><sub><b>Seat selection</b></sub></td>
-    <td align="center"><img src="docs/screenshots/payment.png" width="320" alt="Payment" /><br><sub><b>Payment</b></sub></td>
+    <td align="center"><img src="Screenshot 2026-11-09 182154.png" width="320" alt="Payment" /><br><sub><b>Payment</b></sub></td>
   </tr>
 </table>
 
