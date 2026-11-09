@@ -15,6 +15,8 @@ A full-stack booking platform with seat locking, Razorpay payments, an AI assist
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Open_Site-5b3df5?style=for-the-badge&logo=amazonaws&logoColor=white)](http://3.109.228.45/)
+
 <br>
 
 <img src="https://skillicons.dev/icons?i=java,spring,react,vite,mysql,docker,nginx,githubactions,aws&perline=9" alt="Tech stack" />
@@ -29,6 +31,8 @@ A full-stack booking platform with seat locking, Razorpay payments, an AI assist
 
 <a id="overview"></a>
 ## 📖 Overview
+
+🔗 **Live:** [http://3.109.228.45/](http://3.109.228.45/) (hosted on AWS EC2 with an Elastic IP)
 
 Marquee lets a user browse movies, choose a show, pick seats on a seat map, pay through Razorpay, and receive a confirmation email. The backend is a stateless Spring Boot REST API secured with JWT; the frontend is a React + Vite app served by Nginx. Everything runs in Docker containers on one AWS EC2 instance with an Elastic IP, and every push to `main` is deployed automatically by GitHub Actions.
 
@@ -208,7 +212,7 @@ flowchart LR
 | **Cleanup** | `docker image prune -f` |
 
 > [!NOTE]
-> **Why an Elastic IP?** A regular EC2 public IP changes after a stop/start. An Elastic IP is static, so the pipeline's SSH host never goes stale and a domain can be attached later.
+> **Why an Elastic IP?** A regular EC2 public IP changes after a stop/start. An Elastic IP (currently `3.109.228.45`) is static, so the pipeline's SSH host never goes stale and a domain can be attached later.
 
 ### 🔑 GitHub Secrets
 
