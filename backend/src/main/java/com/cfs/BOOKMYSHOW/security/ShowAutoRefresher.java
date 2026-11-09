@@ -11,7 +11,11 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -24,32 +28,53 @@ public class ShowAutoRefresher implements CommandLineRunner {
     @Autowired private SeatRepository seatRepository;
 
     private static final int DAYS_AHEAD = 7;
+
+    // 8 slots x 15 screens = 120 slots/din, 116 movies ke liye kaafi hai
+    // (har movie ko roz kam se kam 1 show milega)
     private static final LocalTime[] SLOT_TIMES = {
-            LocalTime.of(9, 0), LocalTime.of(12, 0), LocalTime.of(15, 0),
-            LocalTime.of(18, 0), LocalTime.of(21, 0)
+            LocalTime.of(8, 0),  LocalTime.of(10, 0), LocalTime.of(12, 0), LocalTime.of(14, 0),
+            LocalTime.of(16, 0), LocalTime.of(18, 0), LocalTime.of(20, 0), LocalTime.of(22, 0)
     };
 
     @Override
     public void run(String... args) {
         LocalDate today = LocalDate.now();
-        LocalDate lastNeededDate = today.plusDays(DAYS_AHEAD - 1);
 
-        List<Movie> movies = movieRepository.findAll();
-        List<Screen> screens = screenRepository.findAll();
+        List<Movie> movies = new ArrayList<>(movieRepository.findAll());
+        List<Screen> screens = new ArrayList<>(screenRepository.findAll());
+        if (movies.isEmpty() || screens.isEmpty()) {
+            log.info("ShowAutoRefresher: movies ya screens khali hain, shows nahi bane");
+            return;
+        }
+        movies.sort(Comparator.comparing(Movie::getId));
+        screens.sort(Comparator.comparing(Screen::getId));
 
+        int slotsPerDay = screens.size() * SLOT_TIMES.length;
+        Map<Long, List<Seat>> seatCache = new HashMap<>();
         int generatedCount = 0;
 
-        for (Movie movie : movies) {
-            for (Screen screen : screens) {
-                boolean hasFutureShows = showRepository
-                        .existsByMovieIdAndScreenIdAndStartTimeBetween(
-                                movie.getId(), screen.getId(),
-                                lastNeededDate.atStartOfDay(),
-                                lastNeededDate.atTime(23, 59)
-                        );
+        for (int d = 0; d < DAYS_AHEAD; d++) {
+            LocalDate date = today.plusDays(d);
 
-                if (!hasFutureShows) {
-                    generatedCount += generateShowsForWindow(movie, screen, today, lastNeededDate);
+            for (int si = 0; si < screens.size(); si++) {
+                Screen screen = screens.get(si);
+
+                for (int ti = 0; ti < SLOT_TIMES.length; ti++) {
+                    LocalDateTime startTime = date.atTime(SLOT_TIMES[ti]);
+
+                    // slot pehle se bhara hai to chhod do (restart par duplicate nahi banenge)
+                    if (showRepository.existsByScreenIdAndStartTime(screen.getId(), startTime)) continue;
+
+                    // har screen/slot par alag movie: movies ke beech ghumta hai
+                    long slotNumber = (long) si * SLOT_TIMES.length + ti;
+                    int movieIndex = (int) ((date.toEpochDay() * slotsPerDay + slotNumber) % movies.size());
+                    Movie movie = movies.get(movieIndex);
+
+                    List<Seat> seats = seatCache.computeIfAbsent(
+                            screen.getId(), id -> seatRepository.findByScreenId(id));
+
+                    createShow(movie, screen, startTime, seats);
+                    generatedCount++;
                 }
             }
         }
@@ -57,37 +82,23 @@ public class ShowAutoRefresher implements CommandLineRunner {
                 generatedCount, movies.size(), screens.size());
     }
 
-    private int generateShowsForWindow(Movie movie, Screen screen, LocalDate start, LocalDate end) {
-        List<Seat> seats = seatRepository.findByScreenId(screen.getId());
-        int count = 0;
+    private void createShow(Movie movie, Screen screen, LocalDateTime startTime, List<Seat> seats) {
+        Show show = new Show();
+        show.setMovie(movie);
+        show.setScreen(screen);
+        show.setStartTime(startTime);
+        show.setEndTime(startTime.plusMinutes(movie.getDurationMins() + 15));
+        Show saved = showRepository.save(show);
 
-        for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
-            for (LocalTime time : SLOT_TIMES) {
-                LocalDateTime startTime = date.atTime(time);
-
-                boolean exists = showRepository.existsByScreenIdAndStartTime(screen.getId(), startTime);
-                if (exists) continue;
-
-                LocalDateTime endTime = startTime.plusMinutes(movie.getDurationMins() + 15);
-
-                Show show = new Show();
-                show.setMovie(movie);
-                show.setScreen(screen);
-                show.setStartTime(startTime);
-                show.setEndTime(endTime);
-                Show saved = showRepository.save(show);
-
-                for (Seat seat : seats) {
-                    ShowSeat showSeat = new ShowSeat();
-                    showSeat.setShow(saved);
-                    showSeat.setSeat(seat);
-                    showSeat.setStatus(SeatStatus.AVAILABLE);
-                    showSeat.setPrice(seat.getBasePrice());
-                    showSeatRepository.save(showSeat);
-                }
-                count++;
-            }
+        List<ShowSeat> showSeats = new ArrayList<>(seats.size());
+        for (Seat seat : seats) {
+            ShowSeat ss = new ShowSeat();
+            ss.setShow(saved);
+            ss.setSeat(seat);
+            ss.setStatus(SeatStatus.AVAILABLE);
+            ss.setPrice(seat.getBasePrice());
+            showSeats.add(ss);
         }
-        return count;
+        showSeatRepository.saveAll(showSeats);
     }
 }

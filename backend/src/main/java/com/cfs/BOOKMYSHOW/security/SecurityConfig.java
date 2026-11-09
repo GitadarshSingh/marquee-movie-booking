@@ -62,6 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/bookings/**").permitAll()
                         .requestMatchers("/api/payments/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/ai/**").permitAll()
 
                         // Admin-only endpoints (example — adjust as needed)
                         // .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")

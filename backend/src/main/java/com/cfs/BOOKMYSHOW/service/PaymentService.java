@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -102,8 +103,22 @@ public class PaymentService {
         Payment order = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
 
+        PaymentStatus newStatus = PaymentStatus.valueOf(status.toUpperCase());
+
+        // Jo payment pehle se SUCCESS ho chuki hai, use FAILED se wapas mat badlo
+        if (order.getStatus() == PaymentStatus.SUCCESS && newStatus == PaymentStatus.FAILED) {
+            log.warn("Ignoring FAILED update, payment already SUCCESS for order {}", orderId);
+            return;
+        }
+
+        // Already SUCCESS hai to dobara process mat karo (duplicate email se bachne ke liye)
+        if (order.getStatus() == PaymentStatus.SUCCESS && newStatus == PaymentStatus.SUCCESS) {
+            log.info("Payment already SUCCESS for order {}, skipping duplicate update", orderId);
+            return;
+        }
+
         order.setPaymentId(paymentId);
-        order.setStatus(PaymentStatus.valueOf(status.toUpperCase()));
+        order.setStatus(newStatus);
         order.setPaymentTime(LocalDateTime.now());
 
         if (order.getStatus() == PaymentStatus.SUCCESS) {
@@ -119,12 +134,41 @@ public class PaymentService {
                 });
                 showSeatRepository.saveAll(seats);
 
-                emailService.sendEmail(
-                        order.getEmail(),
-                        order.getName(),
-                        String.valueOf(order.getAmount()),
-                        booking.getShow().getMovie().getTitle()
-                );
+                // Payment ka email na ho to user ka registered email use karo
+                String toEmail = (order.getEmail() != null && !order.getEmail().isBlank())
+                        ? order.getEmail()
+                        : booking.getUser().getEmail();
+
+                // Email fail ho to bhi booking CONFIRMED rahe
+                try {
+                    var show = booking.getShow();
+                    var screen = show.getScreen();
+                    var theater = screen.getTheater();
+
+                    String theaterText = theater.getName()
+                            + (theater.getCity() != null && !theater.getCity().isBlank()
+                            ? ", " + theater.getCity() : "");
+
+                    String seatNumbers = seats.stream()
+                            .map(s -> s.getSeat().getSeatNumber())
+                            .collect(Collectors.joining(", "));
+
+                    emailService.sendBookingConfirmation(
+                            toEmail,
+                            order.getName(),
+                            String.valueOf(order.getAmount()),
+                            show.getMovie().getTitle(),
+                            booking.getBookingNumber(),
+                            show.getStartTime(),
+                            theaterText,
+                            screen.getName(),
+                            seatNumbers
+                    );
+                    log.info("Confirmation email sent to {} for order {}", toEmail, orderId);
+                } catch (Exception e) {
+                    // poora stack trace log hoga taaki asli error dikhe
+                    log.error("Email failed for order {}", orderId, e);
+                }
             }
         } else if (order.getStatus() == PaymentStatus.FAILED) {
             Booking booking = order.getBooking();
